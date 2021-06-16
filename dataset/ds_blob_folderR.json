@@ -1,0 +1,41 @@
+{
+	"name": "ds_blob_folderR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_saribs",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sourcefolder": {
+				"type": "string"
+			},
+			"source file": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Raja"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().source file",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().sourcefolder",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,27 @@
+{
+	"name": "ds_sink_multiple_to_blob",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_saribs",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "general"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "narendra.csv",
+				"container": "multiple2"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

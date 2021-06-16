@@ -1,0 +1,6 @@
+{
+	"name": "ir-surya-local",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

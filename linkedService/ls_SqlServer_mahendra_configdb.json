@@ -1,0 +1,16 @@
+{
+	"name": "ls_SqlServer_mahendra_configdb",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=DESKTOP-D06UAHG\\SQLEXPRESS;initial catalog=ConfigDB;user id=mahendra",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI3NTI3NDEzYS0xYzEyLTQyZWYtYWNhYi1hOWFmNTJkNTQ2MjAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-selfhosted-mahendra",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

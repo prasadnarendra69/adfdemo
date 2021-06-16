@@ -1,0 +1,24 @@
+{
+	"name": "ds_ConfigDB_hash",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_selfhost_hasham",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

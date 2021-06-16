@@ -1,0 +1,120 @@
+{
+	"name": "pl_errorhandlin_example3",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "cp_data",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "seterror",
+					"value": {
+						"value": "success",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "cp_data",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_blob_saribs",
+						"type": "DatasetReference",
+						"parameters": {
+							"filename": "country"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_blob_saribs_movie",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set variable1_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "cp_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "seterror",
+					"value": {
+						"value": "success",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"seterror": {
+				"type": "String",
+				"defaultValue": "error"
+			}
+		},
+		"folder": {
+			"name": "A-Surya Sir"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-28T12:44:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

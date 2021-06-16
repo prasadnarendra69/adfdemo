@@ -1,0 +1,16 @@
+{
+	"name": "ls_npsql_advanture2014",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=DESKTOP-VD79SI7;initial catalog=AdventureWorks2014;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIzODBlZmEyMS05N2M1LTQ1M2UtYjc2NC0xNjgyNjBhMjA4MjMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "ribs-selfhosted-ir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

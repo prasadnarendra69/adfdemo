@@ -1,0 +1,16 @@
+{
+	"name": "LS_sql_server_ashwanth",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=ASH-CEK719A\\SQLEXPRESS;initial catalog=ash;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJjZGQzMTA3NS0xNDFhLTQ5NTUtYmFlYS04OWRiZDVhMmQ3NGQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-selfhosted-ashwanth",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

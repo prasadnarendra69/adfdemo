@@ -1,0 +1,32 @@
+{
+	"name": "tg_moviedata_datflow",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_testdataflow",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2021-05-27T04:28:00",
+				"timeZone": "India Standard Time",
+				"schedule": {
+					"hours": [
+						5,
+						10,
+						14,
+						18
+					]
+				}
+			}
+		}
+	}
+}

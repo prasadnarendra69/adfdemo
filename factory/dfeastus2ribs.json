@@ -1,0 +1,9 @@
+{
+	"name": "dfeastus2ribs",
+	"location": "eastus2",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "cd4d740c-8834-408c-8c13-b466fc330685",
+		"tenantId": "f7f490e2-05c4-42ff-8029-9cf0efefc1a9"
+	}
+}

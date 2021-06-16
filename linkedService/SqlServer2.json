@@ -1,0 +1,16 @@
+{
+	"name": "SqlServer2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=INDIA-PC\\SQLEXPRESS;initial catalog=AdventureWorks2014;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyZjc2M2I2NC0xN2ZmLTQ4YWQtYTBkOS01Y2NlMWIzODRmOTIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "ir-surya-local",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

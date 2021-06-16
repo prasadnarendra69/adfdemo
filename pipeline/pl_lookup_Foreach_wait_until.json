@@ -1,0 +1,206 @@
+{
+	"name": "pl_lookup_Foreach_wait_until",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkp_tabledetails",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "until_condiitontrue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT ID,ViewName,TableName,FileName FROM Pipelineinformation",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_synapse_ribs",
+						"type": "DatasetReference",
+						"parameters": {
+							"tablename": "xxx",
+							"schemaname": "xxx"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "foreach_tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lkp_tabledetails",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lkp_tabledetails').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "cp_synapase_blob",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_synapse_ribs",
+									"type": "DatasetReference",
+									"parameters": {
+										"tablename": {
+											"value": "@item().ViewName",
+											"type": "Expression"
+										},
+										"schemaname": "xxxx"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_blob_saribs",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "until_condiitontrue",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(1,activity('lkp_truevalue').output.firstrow.result)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "lkp_truevalue",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": {
+										"value": "SELECT 1 result FROM  DependentPipeline WHERE Pipelinename='@{pipeline().parameters.previouspipeline}' and Pipelinestatus='Completed'\n\tUNION\n\tSELECT 0 AS result",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_synapse_ribs",
+									"type": "DatasetReference",
+									"parameters": {
+										"tablename": "xxx",
+										"schemaname": "xxx"
+									}
+								}
+							}
+						},
+						{
+							"name": "Wait_2mins",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "lkp_truevalue",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 2
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			}
+		],
+		"parameters": {
+			"previouspipeline": {
+				"type": "string",
+				"defaultValue": "Dimensionload"
+			}
+		},
+		"folder": {
+			"name": "A-Surya Sir"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-30T06:09:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

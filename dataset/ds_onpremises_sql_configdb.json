@@ -1,0 +1,16 @@
+{
+	"name": "ds_onpremises_sql_configdb",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onpremise_sql_ConfigDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "general"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

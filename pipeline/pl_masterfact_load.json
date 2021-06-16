@@ -1,0 +1,134 @@
+{
+	"name": "pl_masterfact_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "ep_factsales",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "sp_Insert_pipeline_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_fact_factsales",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"partablename": {
+							"value": "@pipeline().parameters.parfacttable",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "sp_Insert_pipeline_status",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[Usp_Pipeline_Insert_Update_Status]",
+					"storedProcedureParameters": {
+						"PipelineErrorCode": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineErrorMessage": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineStatus": {
+							"value": "InProgress",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_onpremise_sql_ConfigDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "sp_update_pipeline_status",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ep_factsales",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[Usp_Pipeline_Insert_Update_Status]",
+					"storedProcedureParameters": {
+						"PipelineErrorCode": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineErrorMessage": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineStatus": {
+							"value": "Completed",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_onpremise_sql_ConfigDB",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"parfacttable": {
+				"type": "string",
+				"defaultValue": "FactSales"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-01T03:58:50Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

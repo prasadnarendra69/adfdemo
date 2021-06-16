@@ -1,0 +1,26 @@
+{
+	"name": "pl_executepipeline_activity",
+	"properties": {
+		"activities": [
+			{
+				"name": "exp_forecha",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_errorhandlin_example",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "A-Surya Sir"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-28T12:44:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

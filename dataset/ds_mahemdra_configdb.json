@@ -1,0 +1,13 @@
+{
+	"name": "ds_mahemdra_configdb",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_SqlServer_mahendra_configdb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

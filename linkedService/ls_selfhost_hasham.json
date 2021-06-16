@@ -1,0 +1,16 @@
+{
+	"name": "ls_selfhost_hasham",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=DESKTOP-CO9DO02;initial catalog=ConfigDB;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIzZmM5Y2Q3My0zM2QxLTQzOTMtOWE2Zi04MGExZmYxYjVjNjAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-selfhostedhasham",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

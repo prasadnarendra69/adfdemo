@@ -1,0 +1,6 @@
+{
+	"name": "is-selfhosted-raja",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

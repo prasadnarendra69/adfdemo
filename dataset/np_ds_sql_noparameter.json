@@ -1,0 +1,13 @@
+{
+	"name": "np_ds_sql_noparameter",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sqlserver_np",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

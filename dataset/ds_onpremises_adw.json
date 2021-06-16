@@ -1,0 +1,36 @@
+{
+	"name": "ds_onpremises_adw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onpremises_sql_ADW_source",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"schemaname": {
+				"type": "string",
+				"defaultValue": "xxx"
+			},
+			"tablename": {
+				"type": "string",
+				"defaultValue": "xxx"
+			}
+		},
+		"folder": {
+			"name": "general"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schemaname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

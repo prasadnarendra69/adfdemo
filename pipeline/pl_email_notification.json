@@ -1,0 +1,37 @@
+{
+	"name": "pl_email_notification",
+	"properties": {
+		"activities": [
+			{
+				"name": "send-email",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+					"method": "POST",
+					"body": {
+						"value": "{\n \"title\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"message\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\n",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"emailaddress": {
+				"type": "string",
+				"defaultValue": "rsnbhupathi@gmail.com;sbhupathi1983@gmail.com"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-31T14:11:14Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

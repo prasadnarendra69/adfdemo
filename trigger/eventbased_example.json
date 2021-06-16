@@ -1,0 +1,27 @@
+{
+	"name": "eventbased_example",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_errorhandlin_example2",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"filename": "country"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/event/blobs/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

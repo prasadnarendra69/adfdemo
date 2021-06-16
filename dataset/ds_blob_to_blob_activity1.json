@@ -1,0 +1,40 @@
+{
+	"name": "ds_blob_to_blob_activity1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_saribs",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sinkfolder": {
+				"type": "string"
+			},
+			"sinkfile": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Raja"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().sinkfile",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().sinkfolder",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

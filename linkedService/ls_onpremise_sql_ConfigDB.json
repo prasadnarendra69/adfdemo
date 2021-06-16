@@ -1,0 +1,23 @@
+{
+	"name": "ls_onpremise_sql_ConfigDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Data Source=INDIA-PC\\SQLEXPRESS;Initial Catalog=ConfigDB;User ID=sa",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kv_ribs_dev",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sqlonpremisespassword"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ir-surya-local",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

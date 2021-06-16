@@ -1,0 +1,35 @@
+{
+	"name": "ds_synapse_ribs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_synapse_ribs",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tablename": {
+				"type": "string",
+				"defaultValue": "xxx"
+			},
+			"schemaname": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "general"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schemaname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

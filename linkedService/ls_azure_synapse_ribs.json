@@ -1,0 +1,19 @@
+{
+	"name": "ls_azure_synapse_ribs",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=ribssynapse.sql.azuresynapse.net;Initial Catalog=ribssqlpool1;User ID=sqladminuser",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kv_ribs_dev",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "ribssynapsepassword"
+			}
+		}
+	}
+}

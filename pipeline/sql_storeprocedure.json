@@ -1,0 +1,33 @@
+{
+	"name": "sql_storeprocedure",
+	"properties": {
+		"activities": [
+			{
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[myproc]"
+				},
+				"linkedServiceName": {
+					"referenceName": "Sqlserver_np",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "Narendra"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T17:43:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

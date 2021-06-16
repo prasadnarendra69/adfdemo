@@ -1,0 +1,45 @@
+{
+	"name": "dftestmoviedata",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_gen2_moviedata_src",
+						"type": "DatasetReference"
+					},
+					"name": "moviedata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sink",
+						"type": "DatasetReference"
+					},
+					"name": "sinkavgratingbyyead"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sink",
+						"type": "DatasetReference"
+					},
+					"name": "sinkavgbygeners"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FilterYears"
+				},
+				{
+					"name": "Avgbyyear"
+				},
+				{
+					"name": "AggbyGeners"
+				}
+			],
+			"script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as integer,\n\t\tRating as integer,\n\t\t{Rotton Tomato} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> moviedata\nmoviedata filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> FilterYears\nFilterYears aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> Avgbyyear\nFilterYears aggregate(groupBy(genres),\n\tAvgbyGeners = avg(toInteger(Rating))) ~> AggbyGeners\nAvgbyyear sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['avgratingbyyear'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkavgratingbyyead\nAggbyGeners sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['avgratingbygeners'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkavgbygeners"
+		}
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"name": "ls_sqlserver_adventure_ashwanth",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=ASH-CEK719A\\SQLEXPRESS;initial catalog=AdventureWorks2014;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJkMmE1MjNhMy1hZDlhLTQzYzMtYjc3OS1kY2U2ZWVlMjZhNzUiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-selfhosted-ashwanth",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

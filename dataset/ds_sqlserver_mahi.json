@@ -1,0 +1,16 @@
+{
+	"name": "ds_sqlserver_mahi",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Sqlserver_mahendra",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "mahendra"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,212 @@
+{
+	"name": "has_pl_dim_productcategory",
+	"properties": {
+		"activities": [
+			{
+				"name": "sp_insert_initialpipeline_status",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[Usp_Pipeline_Insert_Update_Status]",
+					"storedProcedureParameters": {
+						"PipelineErrorCode": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineErrorMessage": {
+							"value": "null",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineStatus": {
+							"value": "inprogress",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_selfhost_hasham",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "lu_getdata_db",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "sp_insert_initialpipeline_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderStoredProcedureName": "[dbo].[Usp_Get_Table_Config_Values]",
+						"storedProcedureParameters": {
+							"TableName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.tablename",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_ConfigDB_hash",
+						"type": "DatasetReference",
+						"parameters": {
+							"tablename": "productcategory"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "sp_truncate_stagingtable",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "lu_getdata_db",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_truncate_stagingtable]",
+					"storedProcedureParameters": {
+						"schemaname": {
+							"value": {
+								"value": "@activity('lu_getdata_db').output.value[0].StagingSchemaName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"tablename": {
+							"value": {
+								"value": "@activity('lu_getdata_db').output.value[0].StaingTableName",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_has_datawarehouse",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "cp_staging",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "sp_truncate_stagingtable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_has_adventure",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaname": "salesdata",
+							"tablename": {
+								"value": "@activity('lu_getdata_db').output.value[0].sourceviewname",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_has_sql_datawarehouse",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaname": {
+								"value": "@activity('lu_getdata_db').output.value[0].stagingschemaname",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "activity('lu_getdata_db').output.value[0].staingtablename",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-03T17:01:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

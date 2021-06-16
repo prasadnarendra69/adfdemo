@@ -1,0 +1,6 @@
+{
+	"name": "ribs-selfhosted-ir",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

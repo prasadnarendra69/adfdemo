@@ -1,0 +1,29 @@
+{
+	"name": "tg_masterdimensionload",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_masterdimension_load",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2021-05-31T05:08:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"hours": [
+						5
+					]
+				}
+			}
+		}
+	}
+}

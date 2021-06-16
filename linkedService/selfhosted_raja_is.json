@@ -1,0 +1,16 @@
+{
+	"name": "selfhosted_raja_is",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=DESKTOP-7LGTLKK\\SQLEXPRESS;initial catalog=raja;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1N2FiODkwOS00MTlkLTQ1OGYtOTI2Yi0wNjNkMGZhYTgxOTYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "is-selfhosted-raja",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

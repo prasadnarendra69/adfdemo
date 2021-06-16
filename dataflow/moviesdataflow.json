@@ -1,0 +1,45 @@
+{
+	"name": "moviesdataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_gen2_movie",
+						"type": "DatasetReference"
+					},
+					"name": "movesdata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sink",
+						"type": "DatasetReference"
+					},
+					"name": "sinkblob"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sink",
+						"type": "DatasetReference"
+					},
+					"name": "sinkgneres"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FilterYears"
+				},
+				{
+					"name": "AggregateComedyRatings"
+				},
+				{
+					"name": "AggregateBygenres"
+				}
+			],
+			"script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as integer '##0',\n\t\tRating as integer '##0',\n\t\t{Rotton Tomato} as integer '##0'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tskipLines: 1) ~> movesdata\nmovesdata filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> FilterYears\nFilterYears aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateComedyRatings\nFilterYears aggregate(groupBy(genres),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateBygenres\nAggregateComedyRatings sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['movierating'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkblob\nAggregateBygenres sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['genrerating'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkgneres"
+		}
+	}
+}

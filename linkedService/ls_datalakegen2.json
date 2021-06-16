@@ -1,0 +1,11 @@
+{
+	"name": "ls_datalakegen2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://dlsgen2synapse.dfs.core.windows.net"
+		}
+	}
+}

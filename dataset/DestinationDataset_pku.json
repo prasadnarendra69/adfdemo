@@ -1,0 +1,22 @@
+{
+	"name": "DestinationDataset_pku",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_saribs",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "general"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "themes.csv",
+				"container": "narendra"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
