@@ -1,0 +1,434 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "dfeastus2ribs"
+		},
+		"LS_sql_server_ashwanth_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_sql_server_ashwanth'"
+		},
+		"SqlServer2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlServer2'"
+		},
+		"SqlServer3_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlServer3'"
+		},
+		"Sqlserver_np_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Sqlserver_np'"
+		},
+		"is_linked_raja_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'is_linked_raja'"
+		},
+		"linkedService1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'linkedService1'"
+		},
+		"ls_SqlServer_mahendra_configdb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_SqlServer_mahendra_configdb'"
+		},
+		"ls_SqlServer_venu_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_SqlServer_venu'"
+		},
+		"ls_Sqlserver_mahendra_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_Sqlserver_mahendra'"
+		},
+		"ls_azure_synapse_ribs_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_azure_synapse_ribs'"
+		},
+		"ls_blob_saribs_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_blob_saribs'"
+		},
+		"ls_datawarehouse_mahendra_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_datawarehouse_mahendra'"
+		},
+		"ls_gen2_key_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_gen2_key'"
+		},
+		"ls_has_datawarehouse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_has_datawarehouse'"
+		},
+		"ls_hash_adventure_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_hash_adventure'"
+		},
+		"ls_npsql_advanture2014_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_npsql_advanture2014'"
+		},
+		"ls_onpremise_sql_ConfigDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_onpremise_sql_ConfigDB'"
+		},
+		"ls_onpremises_sql_ADW_source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_onpremises_sql_ADW_source'"
+		},
+		"ls_pocsqldb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_pocsqldb'"
+		},
+		"ls_selfhost_hasham_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_selfhost_hasham'"
+		},
+		"ls_sql_has_Datawarehouse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sql_has_Datawarehouse'"
+		},
+		"ls_sql_hash_AdventureWorks_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sql_hash_AdventureWorks'"
+		},
+		"ls_sqlserver_DWH_ashwanth_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqlserver_DWH_ashwanth'"
+		},
+		"ls_sqlserver_adventure_ashwanth_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqlserver_adventure_ashwanth'"
+		},
+		"ls_sqlserver_configDB_ashwanth_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqlserver_configDB_ashwanth'"
+		},
+		"ls_synapse_ribs_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_synapse_ribs'"
+		},
+		"np_ls_sql_warehouse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'np_ls_sql_warehouse'"
+		},
+		"selfhosted_raja_is_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'selfhosted_raja_is'"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rebrickable.com/downloads/"
+		},
+		"kv_ribs_dev_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kv-ribs-dev.vault.azure.net/"
+		},
+		"ls_datalakegen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dlsgen2synapse.dfs.core.windows.net"
+		},
+		"ls_gen2_key_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dlsgen2synapse.dfs.core.windows.net"
+		},
+		"eventbased_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
+		},
+		"eventbased_example_properties_pl_errorhandlin_example2_parameters_filename": {
+			"type": "string",
+			"defaultValue": "country"
+		},
+		"eventbased_example_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
+		},
+		"trigger_example1_properties_pl_errorhandlin_example2_parameters_filename": {
+			"type": "string",
+			"defaultValue": "country"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "dfeastus2ribs_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"is_linked_raja_connectionString": {
+						"value": "[parameters('is_linked_raja_connectionString')]"
+					},
+					"linkedService1_connectionString": {
+						"value": "[parameters('linkedService1_connectionString')]"
+					},
+					"ls_blob_saribs_connectionString": {
+						"value": "[parameters('ls_blob_saribs_connectionString')]"
+					},
+					"ls_gen2_key_accountKey": {
+						"value": "[parameters('ls_gen2_key_accountKey')]"
+					},
+					"ls_pocsqldb_connectionString": {
+						"value": "[parameters('ls_pocsqldb_connectionString')]"
+					},
+					"ls_synapse_ribs_connectionString": {
+						"value": "[parameters('ls_synapse_ribs_connectionString')]"
+					},
+					"HttpServer1_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
+					},
+					"kv_ribs_dev_properties_typeProperties_baseUrl": {
+						"value": "[parameters('kv_ribs_dev_properties_typeProperties_baseUrl')]"
+					},
+					"ls_datalakegen2_properties_typeProperties_url": {
+						"value": "[parameters('ls_datalakegen2_properties_typeProperties_url')]"
+					},
+					"ls_gen2_key_properties_typeProperties_url": {
+						"value": "[parameters('ls_gen2_key_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LS_sql_server_ashwanth_connectionString": {
+						"value": "[parameters('LS_sql_server_ashwanth_connectionString')]"
+					},
+					"SqlServer2_connectionString": {
+						"value": "[parameters('SqlServer2_connectionString')]"
+					},
+					"SqlServer3_connectionString": {
+						"value": "[parameters('SqlServer3_connectionString')]"
+					},
+					"Sqlserver_np_connectionString": {
+						"value": "[parameters('Sqlserver_np_connectionString')]"
+					},
+					"ls_SqlServer_mahendra_configdb_connectionString": {
+						"value": "[parameters('ls_SqlServer_mahendra_configdb_connectionString')]"
+					},
+					"ls_SqlServer_venu_connectionString": {
+						"value": "[parameters('ls_SqlServer_venu_connectionString')]"
+					},
+					"ls_Sqlserver_mahendra_connectionString": {
+						"value": "[parameters('ls_Sqlserver_mahendra_connectionString')]"
+					},
+					"ls_azure_synapse_ribs_connectionString": {
+						"value": "[parameters('ls_azure_synapse_ribs_connectionString')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ls_datawarehouse_mahendra_connectionString": {
+						"value": "[parameters('ls_datawarehouse_mahendra_connectionString')]"
+					},
+					"ls_has_datawarehouse_connectionString": {
+						"value": "[parameters('ls_has_datawarehouse_connectionString')]"
+					},
+					"ls_hash_adventure_connectionString": {
+						"value": "[parameters('ls_hash_adventure_connectionString')]"
+					},
+					"ls_npsql_advanture2014_connectionString": {
+						"value": "[parameters('ls_npsql_advanture2014_connectionString')]"
+					},
+					"ls_onpremise_sql_ConfigDB_connectionString": {
+						"value": "[parameters('ls_onpremise_sql_ConfigDB_connectionString')]"
+					},
+					"ls_onpremises_sql_ADW_source_connectionString": {
+						"value": "[parameters('ls_onpremises_sql_ADW_source_connectionString')]"
+					},
+					"ls_selfhost_hasham_connectionString": {
+						"value": "[parameters('ls_selfhost_hasham_connectionString')]"
+					},
+					"ls_sql_has_Datawarehouse_connectionString": {
+						"value": "[parameters('ls_sql_has_Datawarehouse_connectionString')]"
+					},
+					"ls_sql_hash_AdventureWorks_connectionString": {
+						"value": "[parameters('ls_sql_hash_AdventureWorks_connectionString')]"
+					},
+					"ls_sqlserver_DWH_ashwanth_connectionString": {
+						"value": "[parameters('ls_sqlserver_DWH_ashwanth_connectionString')]"
+					},
+					"ls_sqlserver_adventure_ashwanth_connectionString": {
+						"value": "[parameters('ls_sqlserver_adventure_ashwanth_connectionString')]"
+					},
+					"ls_sqlserver_configDB_ashwanth_connectionString": {
+						"value": "[parameters('ls_sqlserver_configDB_ashwanth_connectionString')]"
+					},
+					"np_ls_sql_warehouse_connectionString": {
+						"value": "[parameters('np_ls_sql_warehouse_connectionString')]"
+					},
+					"selfhosted_raja_is_connectionString": {
+						"value": "[parameters('selfhosted_raja_is_connectionString')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_2')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_4",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_4.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_3')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_5",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_5.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_4')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_6",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_6.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_5')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_7",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_7.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"eventbased_properties_typeProperties_scope": {
+						"value": "[parameters('eventbased_properties_typeProperties_scope')]"
+					},
+					"eventbased_example_properties_pl_errorhandlin_example2_parameters_filename": {
+						"value": "[parameters('eventbased_example_properties_pl_errorhandlin_example2_parameters_filename')]"
+					},
+					"eventbased_example_properties_typeProperties_scope": {
+						"value": "[parameters('eventbased_example_properties_typeProperties_scope')]"
+					},
+					"trigger_example1_properties_pl_errorhandlin_example2_parameters_filename": {
+						"value": "[parameters('trigger_example1_properties_pl_errorhandlin_example2_parameters_filename')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_6')]"
+			]
+		}
+	]
+}

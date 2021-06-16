@@ -1,0 +1,6523 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "dfeastus2ribs"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/df_orders')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "ashwanth"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_blob_order_details_ashwanth",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_blob_order_details_ashwanth",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Select1"
+						}
+					],
+					"script": "source(output(\n\t\tOid as string,\n\t\tOname as string,\n\t\tamount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: true,\n\twildcardPaths:['order_details.txt'],\n\tpartitionBy('hash', 1)) ~> source1\nsource1 select(mapColumn(\n\t\tOrderid = Oid,\n\t\tOrdername = Oname\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tOid as string,\n\t\tOname as string,\n\t\tamount as string\n\t),\n\tpartitionFileNames:['order_details.txt'],\n\ttruncate: true,\n\tmapColumn(\n\t\tOid = Orderid,\n\t\tOname = Ordername\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dftestmoviedata')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_gen2_moviedata_src",
+								"type": "DatasetReference"
+							},
+							"name": "moviedata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_sink",
+								"type": "DatasetReference"
+							},
+							"name": "sinkavgratingbyyead"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sink",
+								"type": "DatasetReference"
+							},
+							"name": "sinkavgbygeners"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterYears"
+						},
+						{
+							"name": "Avgbyyear"
+						},
+						{
+							"name": "AggbyGeners"
+						}
+					],
+					"script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as integer,\n\t\tRating as integer,\n\t\t{Rotton Tomato} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> moviedata\nmoviedata filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> FilterYears\nFilterYears aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> Avgbyyear\nFilterYears aggregate(groupBy(genres),\n\tAvgbyGeners = avg(toInteger(Rating))) ~> AggbyGeners\nAvgbyyear sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['avgratingbyyear'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkavgratingbyyead\nAggbyGeners sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['avgratingbygeners'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkavgbygeners"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/moviesdataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_gen2_movie",
+								"type": "DatasetReference"
+							},
+							"name": "movesdata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_sink",
+								"type": "DatasetReference"
+							},
+							"name": "sinkblob"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sink",
+								"type": "DatasetReference"
+							},
+							"name": "sinkgneres"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterYears"
+						},
+						{
+							"name": "AggregateComedyRatings"
+						},
+						{
+							"name": "AggregateBygenres"
+						}
+					],
+					"script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as integer '##0',\n\t\tRating as integer '##0',\n\t\t{Rotton Tomato} as integer '##0'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tskipLines: 1) ~> movesdata\nmovesdata filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> FilterYears\nFilterYears aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateComedyRatings\nFilterYears aggregate(groupBy(genres),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateBygenres\nAggregateComedyRatings sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['movierating'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkblob\nAggregateBygenres sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['genrerating'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sinkgneres"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_order_details')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_order_details",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_orders",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"folder": {
+					"name": "ashwanth"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-27T12:56:40Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_orders')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/has_pl_dim_productcategory')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_insert_initialpipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_selfhost_hasham",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lu_getdata_db",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_initialpipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_ConfigDB_hash",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": "productcategory"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "sp_truncate_stagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lu_getdata_db",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lu_getdata_db').output.value[0].StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lu_getdata_db').output.value[0].StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_has_datawarehouse",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stagingtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_has_adventure",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": "salesdata",
+									"tablename": {
+										"value": "@activity('lu_getdata_db').output.value[0].sourceviewname",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_has_sql_datawarehouse",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lu_getdata_db').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "activity('lu_getdata_db').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-03T17:01:00Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/np_pl_dim_productcategories')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "pl_pipeline_startinfo",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lookup for tablename",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "pl_pipeline_startinfo",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "np_ds_sql_noparameter",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "pl_sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lookup for tablename",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lookup for tablename').output.value[0].StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lookup for tablename').output.value[0].StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "np_ls_sql_warehouse",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "pl_sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "np_ds_adventure2014",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lookup for tablename').output.value[0].sourceviewname",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "np_ds_datawarehouse_sql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lookup for tablename').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lookup for tablename').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_update_error_startpipelin",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "pl_pipeline_startinfo",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('pl_pipeline_startinfo').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('pl_pipeline_startinfo').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "pl_pipeline_truncateinfo",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "pl_sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('pl_sp_truncate_staging_table').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('pl_sp_truncate_staging_table').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "pl_pipeline_copyinfo erro",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('Copy data1').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('Copy data1').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_lookup_error_startpipelin",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lookup for tablename",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lookup for tablename').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lookup for tablename').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Narendra"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-03T11:53:06Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline3')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "moviedata",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "moviesdataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"movesdata": {},
+									"sinkblob": {},
+									"sinkgneres": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"folder": {
+					"name": "A-Surya Sir"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-28T12:44:39Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/moviesdataflow')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_blob_to_sqlserver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "cp_blob_to_sqlserver",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_blob_demo_ash",
+								"type": "DatasetReference",
+								"parameters": {
+									"foldername": {
+										"value": "@pipeline().parameters.foldername",
+										"type": "Expression"
+									},
+									"filename": {
+										"value": "@pipeline().parameters.filename",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqlserver_ash",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@pipeline().parameters.tablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"foldername": {
+						"type": "string"
+					},
+					"filename": {
+						"type": "string"
+					},
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "ashwanth"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-31T13:43:05Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_df_emp')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_emp",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"blob": {},
+									"sinktoblob": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"folder": {
+					"name": "ashwanth"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-28T10:56:03Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_customer')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "Customer"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-03T14:42:44Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_customer1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_initial_pipe_line_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_initial_pipe_line_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_sqlserver_configDB_ashwanth",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "sp_truncate_stg_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.value[0].stagingschemaname",
+										"type": "Expression"
+									}
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_DWH_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging_from_source",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stg_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_sqlserver_adventure_ashwanth",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.value[0].SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqlserver_DWH_ashwanth",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_update_dim_customer",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging_from_source",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_Insert_update_dimcustomer]"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_DWH_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_pipeline_status_completed",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_update_dim_customer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_initial_pipe_line_error_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_initial_pipe_line_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_initial_pipe_line_status').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_initial_pipe_line_status').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_lkp_error_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_truncate_error_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stg_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_stg_table').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_stg_table').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_error_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging_from_source",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging_from_source').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging_from_source').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_reporting_error_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_update_dim_customer",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Asp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_update_dim_customer').error.errorcode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_update_dim_customer').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqlserver_configDB_ashwanth",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "ashwanth project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-04T10:57:05Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_product')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "Product"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-30T13:00:43Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productcategory')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "ProductCategory"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-30T13:00:43Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productcategory1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_insert_initialpipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_SqlServer_mahendra_configdb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lp_getdata_db",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_initialpipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_mahemdra_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "sp_truncate_stagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lp_getdata_db",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_datawarehouse_mahendra",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stagingtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_sql_mahendra_Adventure",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": "salesdata",
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].sourceviewname",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqlserver_DWH_mahendra",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lp_getdata_db').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "mahendra_Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-03T14:42:44Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productcategory2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_insert_initialpipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_SqlServer_mahendra_configdb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lp_getdata_db",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_initialpipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_mahemdra_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "sp_truncate_stagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lp_getdata_db",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_datawarehouse_mahendra",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stagingtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_sql_mahendra_Adventure",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": "salesdata",
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].sourceviewname",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqlserver_DWH_mahendra",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lp_getdata_db').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_completed_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "Null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "Null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_SqlServer_mahendra_configdb",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "mahendra_Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-04T11:46:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productcatogory')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null"
+								},
+								"PipelineErrorMessage": {
+									"value": "null"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
+								},
+								"PipelineStatus": {
+									"value": "inprogress"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_lookup_mydb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ls_sql_advanturedatabase",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": "salesdata",
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_mybd_np",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status_copy2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null"
+								},
+								"PipelineErrorMessage": {
+									"value": "null"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
+								},
+								"PipelineStatus": {
+									"value": "completed"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_Insert_pipeline_status_copy2",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": ""
+								},
+								"PipelineErrorMessage": {
+									"value": ""
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
+								},
+								"PipelineStatus": {
+									"value": ""
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status_copy2",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[USP_INSERT_UPDATE_PROD]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Sqlserver_np",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String"
+					},
+					"vardimtable": {
+						"type": "String"
+					},
+					"varstagingtable": {
+						"type": "String"
+					},
+					"varprocedure": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Narendra"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-01T11:37:40Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productsubcategory')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "ProductSubCategory"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-30T13:00:43Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productsubcategory2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_insert_initialpipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Inprogress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_SqlServer_mahendra_configdb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lp_getdata_db",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_initialpipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.tablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_mahemdra_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "sp_truncate_stagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lp_getdata_db",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lp_getdata_db').output.value[0].StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_datawarehouse_mahendra",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_stagingtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_sql_mahendra_Adventure",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": "salesdata",
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].sourceviewname",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqlserver_DWH_mahendra",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "@activity('lp_getdata_db').output.value[0].stagingschemaname",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lp_getdata_db').output.value[0].staingtablename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_completed_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "Null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "Null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_SqlServer_mahendra_configdb",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "mahendra_Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-04T12:00:59Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_productsubcategory_test')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "ProductSubCategory"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-31T03:55:32Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dim_salesterriority')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lkp_get_details",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[Usp_Get_Table_Config_Values]",
+								"storedProcedureParameters": {
+									"TableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.partablename",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_onpremises_sql_configdb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "sp_truncate_staging_table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_truncate_stagingtable]",
+							"storedProcedureParameters": {
+								"schemaname": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StagingSchemaName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"tablename": {
+									"value": {
+										"value": "@activity('lkp_get_details').output.firstRow.StaingTableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_completed_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_piplinestart",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_Insert_pipeline_status').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_lkp_get_derails",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "lkp_get_details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('lkp_get_details').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_truncatestagingtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_truncate_staging_table').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "cp_to_staging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sp_truncate_staging_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlDWSink"
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								}
+							},
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onpremises_adw",
+								"type": "DatasetReference",
+								"parameters": {
+									"schemaname": {
+										"value": "salesdata",
+										"type": "Expression"
+									},
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.SourceViewName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_ribs",
+								"type": "DatasetReference",
+								"parameters": {
+									"tablename": {
+										"value": "@activity('lkp_get_details').output.firstrow.StaingTableName",
+										"type": "Expression"
+									},
+									"schemaname": {
+										"value": "@activity('lkp_get_details').output.firstrow.StagingSchemaName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "sp_insert_updatedimtable",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@activity('lkp_get_details').output.firstrow.ProcedureName",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_synapse_ribs",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "cp_to_staging",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('cp_to_staging').output.Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_error_sopystaging_copy1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "sp_insert_updatedimtable",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.errorCode",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": {
+										"value": "@activity('sp_insert_updatedimtable').Error.Message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Error",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"partablename": {
+						"type": "string",
+						"defaultValue": "SalesTerritory"
+					}
+				},
+				"variables": {
+					"varviewname": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"vardimtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varstagingtable": {
+						"type": "String",
+						"defaultValue": "Test"
+					},
+					"varprocedure": {
+						"type": "String",
+						"defaultValue": "Test"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-30T13:00:43Z"
+			},
+			"dependsOn": []
+		}
+	]
+}

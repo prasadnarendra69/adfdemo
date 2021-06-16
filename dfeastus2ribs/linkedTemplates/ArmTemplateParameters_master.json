@@ -1,0 +1,123 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "dfeastus2ribs"
+		},
+		"LS_sql_server_ashwanth_connectionString": {
+			"value": ""
+		},
+		"SqlServer2_connectionString": {
+			"value": ""
+		},
+		"SqlServer3_connectionString": {
+			"value": ""
+		},
+		"Sqlserver_np_connectionString": {
+			"value": ""
+		},
+		"is_linked_raja_connectionString": {
+			"value": ""
+		},
+		"linkedService1_connectionString": {
+			"value": ""
+		},
+		"ls_SqlServer_mahendra_configdb_connectionString": {
+			"value": ""
+		},
+		"ls_SqlServer_venu_connectionString": {
+			"value": ""
+		},
+		"ls_Sqlserver_mahendra_connectionString": {
+			"value": ""
+		},
+		"ls_azure_synapse_ribs_connectionString": {
+			"value": ""
+		},
+		"ls_blob_saribs_connectionString": {
+			"value": ""
+		},
+		"ls_datawarehouse_mahendra_connectionString": {
+			"value": ""
+		},
+		"ls_gen2_key_accountKey": {
+			"value": ""
+		},
+		"ls_has_datawarehouse_connectionString": {
+			"value": ""
+		},
+		"ls_hash_adventure_connectionString": {
+			"value": ""
+		},
+		"ls_npsql_advanture2014_connectionString": {
+			"value": ""
+		},
+		"ls_onpremise_sql_ConfigDB_connectionString": {
+			"value": ""
+		},
+		"ls_onpremises_sql_ADW_source_connectionString": {
+			"value": ""
+		},
+		"ls_pocsqldb_connectionString": {
+			"value": ""
+		},
+		"ls_selfhost_hasham_connectionString": {
+			"value": ""
+		},
+		"ls_sql_has_Datawarehouse_connectionString": {
+			"value": ""
+		},
+		"ls_sql_hash_AdventureWorks_connectionString": {
+			"value": ""
+		},
+		"ls_sqlserver_DWH_ashwanth_connectionString": {
+			"value": ""
+		},
+		"ls_sqlserver_adventure_ashwanth_connectionString": {
+			"value": ""
+		},
+		"ls_sqlserver_configDB_ashwanth_connectionString": {
+			"value": ""
+		},
+		"ls_synapse_ribs_connectionString": {
+			"value": ""
+		},
+		"np_ls_sql_warehouse_connectionString": {
+			"value": ""
+		},
+		"selfhosted_raja_is_connectionString": {
+			"value": ""
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"value": "https://rebrickable.com/downloads/"
+		},
+		"kv_ribs_dev_properties_typeProperties_baseUrl": {
+			"value": "https://kv-ribs-dev.vault.azure.net/"
+		},
+		"ls_datalakegen2_properties_typeProperties_url": {
+			"value": "https://dlsgen2synapse.dfs.core.windows.net"
+		},
+		"ls_gen2_key_properties_typeProperties_url": {
+			"value": "https://dlsgen2synapse.dfs.core.windows.net"
+		},
+		"eventbased_properties_typeProperties_scope": {
+			"value": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
+		},
+		"eventbased_example_properties_pl_errorhandlin_example2_parameters_filename": {
+			"value": "country"
+		},
+		"eventbased_example_properties_typeProperties_scope": {
+			"value": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
+		},
+		"trigger_example1_properties_pl_errorhandlin_example2_parameters_filename": {
+			"value": "country"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
