@@ -1,0 +1,27 @@
+{
+	"name": "dataflow2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Json1",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "Flatten1"
+				},
+				{
+					"name": "DerivedColumn1"
+				}
+			],
+			"script": "source(output(\n\t\tCategory as string,\n\t\tRegions as (Region as string, {Sub-Categories} as (EmployeeSales as (Comment as string, Employee as string, Sales as integer)[], {Sub-Category} as string)[])[]\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'arrayOfDocuments',\n\tunquotedColumnNames: true,\n\thasComments: true,\n\tsingleQuoted: true,\n\tbackslashEscape: true) ~> source1\nsource1 foldDown(unroll(Regions, Regions),\n\tmapColumn(\n\t\tRegion = Regions.Region,\n\t\t{Sub-Categories} = Regions.{Sub-Categories}\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Flatten1\nFlatten1 derive(Region = ERROR_FUNCTION('')) ~> DerivedColumn1"
+		}
+	}
+}
