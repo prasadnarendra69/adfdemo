@@ -1,0 +1,117 @@
+{
+	"name": "pl_copy_json",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['Category']"
+								},
+								"sink": {
+									"name": "Category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Regions'][0]['Region']"
+								},
+								"sink": {
+									"name": "Region",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Regions'][0]['Sub-Categories'][0]['Sub-Category']"
+								},
+								"sink": {
+									"name": "Sub-Category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Employee']"
+								},
+								"sink": {
+									"name": "Employee",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Sales']"
+								},
+								"sink": {
+									"name": "Sales",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Comment']"
+								},
+								"sink": {
+									"name": "Comment",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Json1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DelimitedText5",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}

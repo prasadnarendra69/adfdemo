@@ -1,0 +1,65 @@
+{
+	"name": "Json1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_saribs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "JSONFILE.json",
+				"container": "narendra"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"Category": {
+					"type": "string"
+				},
+				"Regions": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"Region": {
+								"type": "string"
+							},
+							"Sub-Categories": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"Sub-Category": {
+											"type": "string"
+										},
+										"EmployeeSales": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"Employee": {
+														"type": "string"
+													},
+													"Sales": {
+														"type": "integer"
+													},
+													"Comment": {
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
