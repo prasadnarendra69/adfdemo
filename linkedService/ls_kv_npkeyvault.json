@@ -1,0 +1,10 @@
+{
+	"name": "ls_kv_npkeyvault",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://prasadkeyvault.vault.azure.net/"
+		}
+	}
+}
