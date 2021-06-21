@@ -101,6 +101,9 @@
 		"ls_gen2_key_properties_typeProperties_url": {
 			"value": "https://dlsgen2synapse.dfs.core.windows.net"
 		},
+		"np_azure_keyvault_properties_typeProperties_baseUrl": {
+			"value": "https://prasadkeyvault.vault.azure.net/"
+		},
 		"eventbased_properties_typeProperties_scope": {
 			"value": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
 		},

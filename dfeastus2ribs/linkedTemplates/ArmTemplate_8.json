@@ -1,0 +1,1021 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "dfeastus2ribs"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_masterdimension_load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ep_product",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_productSubcategory",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dim_product",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parproducttablename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "ep_productcategory",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dim_productcategory",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parProductCategorytablename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "ep_productSubcategory",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_productcategory",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dim_productsubcategory",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parProdcutsubCategorytablename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "ep_salesterriority_dim",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_customer_dim",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dim_salesterriority",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parSalesTerriorityTableName",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "ep_customer_dim",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_productcategory",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dim_customer",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parCustomerTableName",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ep_product",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "ep_salesterriority_dim",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"parproducttablename": {
+						"type": "string",
+						"defaultValue": "Product"
+					},
+					"parProductCategorytablename": {
+						"type": "string",
+						"defaultValue": "ProductCategory"
+					},
+					"parProdcutsubCategorytablename": {
+						"type": "string",
+						"defaultValue": "ProductSubCategory"
+					},
+					"parCustomerTableName": {
+						"type": "string",
+						"defaultValue": "Customer"
+					},
+					"parSalesTerriorityTableName": {
+						"type": "string",
+						"defaultValue": "SalesTerritory"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-01T11:31:58Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_masterfact_load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ep_factsales",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_fact_factsales",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"partablename": {
+									"value": "@pipeline().parameters.parfacttable",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ep_factsales",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"parameters": {
+					"parfacttable": {
+						"type": "string",
+						"defaultValue": "FactSales"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-01T03:58:50Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tg_moviedata_datflow')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_testdataflow",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2021-05-27T04:28:00",
+						"timeZone": "India Standard Time",
+						"schedule": {
+							"hours": [
+								5,
+								10,
+								14,
+								18
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_masterdelta_load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ep_factsales",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_dimensionload",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_fact_delta_factsales",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ep_factsales",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ep_dimensionload",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_masterdimension_load",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "send-email-on-completion",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "sp_update_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"message\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "send-email-on-failur-dimension",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ep_dimensionload",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline} Failed\",\n    \"message\": \"@{activity('ep_dimensionload').error.Message}\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\nactivity('ep_dimensionload').output",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "send-email-on-failure-fact",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ep_factsales",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline}  Failed\",\n    \"message\": \"@{activity('ep_factsales').error.message}\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\n",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"parfacttable": {
+						"type": "string",
+						"defaultValue": "FactSales"
+					},
+					"parprodcuttable": {
+						"type": "string",
+						"defaultValue": "Product"
+					},
+					"parproductCategory": {
+						"type": "string",
+						"defaultValue": "ProductCategory"
+					},
+					"parprodsubcategory": {
+						"type": "string",
+						"defaultValue": "ProductSubCategory"
+					},
+					"parcustomer": {
+						"type": "string",
+						"defaultValue": "Customer"
+					},
+					"parsalesterriority": {
+						"type": "string",
+						"defaultValue": "SalesTerriority"
+					},
+					"emailaddress": {
+						"type": "string",
+						"defaultValue": "prasadnarendra69@gmail.com;rsnbhupathi@gmail.com"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-05T04:24:57Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_masterdimension_load')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_masterfull_load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ep_factsales",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ep_dimensionload",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_masterfact_load",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"parfacttable": {
+									"value": "@pipeline().parameters.parfacttable",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "sp_Insert_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "InProgress",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sp_update_pipeline_status",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ep_factsales",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[Usp_Pipeline_Insert_Update_Status]",
+							"storedProcedureParameters": {
+								"PipelineErrorCode": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineErrorMessage": {
+									"value": "null",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"PipelineStatus": {
+									"value": "Completed",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_onpremise_sql_ConfigDB",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ep_dimensionload",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "sp_Insert_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_masterdimension_load",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "send-email-on-completion",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "sp_update_pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"message\": \"@{pipeline().Pipeline}  executed successfully\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "send-email-on-failur-dimension",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ep_dimensionload",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline} Failed\",\n    \"message\": \"@{activity('ep_dimensionload').error.Message}\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\nactivity('ep_dimensionload').output",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "send-email-on-failure-fact",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ep_factsales",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-01.eastus2.logic.azure.com:443/workflows/53550fda499a408abb3f69c0cfb550c6/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=itX5RPvskxILBXJ9xx8gzNffnmCV90BUdFzb4WqqWdk",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "{\n \"title\": \"@{pipeline().Pipeline}  Failed\",\n    \"message\": \"@{activity('ep_factsales').error.message}\",\n    \"color\": \"Green\",\n    \"dataFactoryName\": \"@{pipeline().DataFactory}\",\n    \"pipelineName\": \"@{pipeline().Pipeline}\",\n    \"pipelineRunId\": \"@{pipeline().RunId}\",\n    \"time\": \"@{utcnow()}\",\n    \"emailaddress\":\"@{pipeline().parameters.emailaddress}\"\n}\n",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"parfacttable": {
+						"type": "string",
+						"defaultValue": "FactSales"
+					},
+					"parprodcuttable": {
+						"type": "string",
+						"defaultValue": "Product"
+					},
+					"parproductCategory": {
+						"type": "string",
+						"defaultValue": "ProductCategory"
+					},
+					"parprodsubcategory": {
+						"type": "string",
+						"defaultValue": "ProductSubCategory"
+					},
+					"parcustomer": {
+						"type": "string",
+						"defaultValue": "Customer"
+					},
+					"parsalesterriority": {
+						"type": "string",
+						"defaultValue": "SalesTerriority"
+					},
+					"emailaddress": {
+						"type": "string",
+						"defaultValue": "prasadnarendra69@gmail.com;rsnbhupathi@gmail.com"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-01T04:26:01Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_masterfact_load')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_masterdimension_load')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tg_masterdimensionload')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_masterdimension_load",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2021-05-31T05:08:00Z",
+						"timeZone": "UTC",
+						"schedule": {
+							"hours": [
+								5
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_masterdimension_load')]"
+			]
+		}
+	]
+}

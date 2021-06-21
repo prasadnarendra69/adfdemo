@@ -135,6 +135,10 @@
 			"type": "string",
 			"defaultValue": "https://dlsgen2synapse.dfs.core.windows.net"
 		},
+		"np_azure_keyvault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://prasadkeyvault.vault.azure.net/"
+		},
 		"eventbased_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
@@ -1407,6 +1411,29 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline4')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"folder": {
+					"name": "Narendra"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_blob_to_blob_ashwanth')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -2261,6 +2288,131 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_blob_sql')]",
 				"[concat(variables('factoryId'), '/datasets/ds_blob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_copy_json')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['Category']"
+										},
+										"sink": {
+											"name": "Category",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Regions'][0]['Region']"
+										},
+										"sink": {
+											"name": "Region",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Regions'][0]['Sub-Categories'][0]['Sub-Category']"
+										},
+										"sink": {
+											"name": "Sub-Category",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Employee']"
+										},
+										"sink": {
+											"name": "Employee",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Sales']"
+										},
+										"sink": {
+											"name": "Sales",
+											"type": "Int64"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Regions'][0]['Sub-Categories'][0]['EmployeeSales'][0]['Comment']"
+										},
+										"sink": {
+											"name": "Comment",
+											"type": "String"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Json1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DelimitedText5",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Json1')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedText5')]"
 			]
 		},
 		{
@@ -12182,7 +12334,8 @@
 						}
 					}
 				],
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2021-06-16T05:30:22Z"
 			},
 			"dependsOn": []
 		},
@@ -12326,6 +12479,34 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText5')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blob_saribs",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "abcdef.csv",
+						"container": "narendra"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blob_saribs')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DestinationDataset_pku')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -12344,6 +12525,76 @@
 						"type": "AzureBlobStorageLocation",
 						"fileName": "themes.csv",
 						"container": "narendra"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blob_saribs')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Json1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blob_saribs",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "JSONFILE.json",
+						"container": "narendra"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"Category": {
+							"type": "string"
+						},
+						"Regions": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"Region": {
+										"type": "string"
+									},
+									"Sub-Categories": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"Sub-Category": {
+													"type": "string"
+												},
+												"EmployeeSales": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"Employee": {
+																"type": "string"
+															},
+															"Sales": {
+																"type": "integer"
+															},
+															"Comment": {
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			},
@@ -14143,6 +14394,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/jsontocsv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blob_saribs",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "output"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blob_saribs')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_datalakegen2')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -14871,6 +15149,19 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/np_azure_keyvault')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('np_azure_keyvault_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/np_ls_sql_warehouse')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -15233,6 +15524,44 @@
 				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]",
 				"[concat(variables('factoryId'), '/datasets/DelimitedText2')]",
 				"[concat(variables('factoryId'), '/datasets/DelimitedText4')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow2')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Json1",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "jsontocsv",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Flatten1"
+						}
+					],
+					"script": "source(output(\n\t\tCategory as string,\n\t\tRegions as (Region as string, {Sub-Categories} as (EmployeeSales as (Comment as string, Employee as string, Sales as integer)[], {Sub-Category} as string)[])[]\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'arrayOfDocuments',\n\thasComments: true,\n\tpartitionBy('hash', 1)) ~> source1\nsource1 foldDown(unroll(Regions.{Sub-Categories}.EmployeeSales, Regions),\n\tmapColumn(\n\t\tCategoty = Category,\n\t\tRegion = Regions.Region,\n\t\t{Sub-Category} = Regions.{Sub-Categories}.{Sub-Category},\n\t\tEmployee = Regions.{Sub-Categories}.EmployeeSales.Employee,\n\t\tSales = Regions.{Sub-Categories}.EmployeeSales.Sales,\n\t\tComment = Regions.{Sub-Categories}.EmployeeSales.Comment\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Flatten1\nFlatten1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['jsontocsvfile.tsv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tCategoty,\n\t\tRegion,\n\t\t{Sub-Category},\n\t\tEmployee,\n\t\tSales,\n\t\tComment\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Json1')]",
+				"[concat(variables('factoryId'), '/datasets/jsontocsv')]"
 			]
 		},
 		{

@@ -135,6 +135,10 @@
 			"type": "string",
 			"defaultValue": "https://dlsgen2synapse.dfs.core.windows.net"
 		},
+		"np_azure_keyvault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://prasadkeyvault.vault.azure.net/"
+		},
 		"eventbased_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/2e7c66d3-4d75-4c4c-baac-29a667540959/resourceGroups/ribs/providers/Microsoft.Storage/storageAccounts/saribs"
@@ -207,6 +211,9 @@
 					},
 					"ls_gen2_key_properties_typeProperties_url": {
 						"value": "[parameters('ls_gen2_key_properties_typeProperties_url')]"
+					},
+					"np_azure_keyvault_properties_typeProperties_baseUrl": {
+						"value": "[parameters('np_azure_keyvault_properties_typeProperties_baseUrl')]"
 					}
 				}
 			},
@@ -254,21 +261,6 @@
 					},
 					"SqlServer3_connectionString": {
 						"value": "[parameters('SqlServer3_connectionString')]"
-					},
-					"Sqlserver_np_connectionString": {
-						"value": "[parameters('Sqlserver_np_connectionString')]"
-					},
-					"ls_SqlServer_mahendra_configdb_connectionString": {
-						"value": "[parameters('ls_SqlServer_mahendra_configdb_connectionString')]"
-					},
-					"ls_SqlServer_venu_connectionString": {
-						"value": "[parameters('ls_SqlServer_venu_connectionString')]"
-					},
-					"ls_Sqlserver_mahendra_connectionString": {
-						"value": "[parameters('ls_Sqlserver_mahendra_connectionString')]"
-					},
-					"ls_azure_synapse_ribs_connectionString": {
-						"value": "[parameters('ls_azure_synapse_ribs_connectionString')]"
 					}
 				}
 			},
@@ -289,6 +281,21 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"Sqlserver_np_connectionString": {
+						"value": "[parameters('Sqlserver_np_connectionString')]"
+					},
+					"ls_SqlServer_mahendra_configdb_connectionString": {
+						"value": "[parameters('ls_SqlServer_mahendra_configdb_connectionString')]"
+					},
+					"ls_SqlServer_venu_connectionString": {
+						"value": "[parameters('ls_SqlServer_venu_connectionString')]"
+					},
+					"ls_Sqlserver_mahendra_connectionString": {
+						"value": "[parameters('ls_Sqlserver_mahendra_connectionString')]"
+					},
+					"ls_azure_synapse_ribs_connectionString": {
+						"value": "[parameters('ls_azure_synapse_ribs_connectionString')]"
 					},
 					"ls_datawarehouse_mahendra_connectionString": {
 						"value": "[parameters('ls_datawarehouse_mahendra_connectionString')]"
@@ -428,6 +435,26 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_6')]"
+			]
+		},
+		{
+			"name": "dfeastus2ribs_ArmTemplate_8",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_8.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'dfeastus2ribs_ArmTemplate_7')]"
 			]
 		}
 	]

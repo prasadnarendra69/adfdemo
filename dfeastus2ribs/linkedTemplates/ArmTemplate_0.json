@@ -46,12 +46,39 @@
 		"ls_gen2_key_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://dlsgen2synapse.dfs.core.windows.net"
+		},
+		"np_azure_keyvault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://prasadkeyvault.vault.azure.net/"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline4')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"folder": {
+					"name": "Narendra"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_email_notification')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -108,7 +135,8 @@
 						}
 					}
 				],
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2021-06-16T05:30:22Z"
 			},
 			"dependsOn": []
 		},
@@ -236,6 +264,19 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/np_azure_keyvault')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('np_azure_keyvault_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IR-selfhosted-ashwanth')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -304,82 +345,6 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_storedprocedure_activity_example')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "sp_insert_data",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[USP_INSERT_PRODCUT]",
-							"storedProcedureParameters": {
-								"Class": {
-									"value": "Medium12",
-									"type": "String"
-								},
-								"Colour": {
-									"value": "Blue12",
-									"type": "String"
-								},
-								"ProductId": {
-									"value": "114",
-									"type": "Int32"
-								},
-								"ProductName": {
-									"value": "PPP",
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "ls_synapse_ribs",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"folder": {
-					"name": "A-Surya Sir"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-05-28T12:44:39Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_synapse_ribs')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_pocsqldb",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "demo"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_pocsqldb')]"
-			]
 		}
 	]
 }
